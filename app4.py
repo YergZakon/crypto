@@ -28,6 +28,19 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
+# Добавляем JavaScript для функции копирования
+st.markdown("""
+<script>
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        console.log('Copying to clipboard was successful!');
+    }, function(err) {
+        console.error('Could not copy text: ', err);
+    });
+}
+</script>
+""", unsafe_allow_html=True)
+
 # Стилизация
 st.markdown("""
     <style>
@@ -54,35 +67,26 @@ st.markdown("""
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         .copy-button {
-            background-color: #1E88E5;
-            color: white;
-            border: none;
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
             border-radius: 4px;
             padding: 4px 8px;
             font-size: 12px;
             cursor: pointer;
             margin-left: 8px;
-            transition: background-color 0.3s;
         }
         .copy-button:hover {
-            background-color: #1976D2;
+            background-color: #e9ecef;
         }
-        .metric-value {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        .metric-label {
-            color: #666;
-            font-size: 14px;
-        }
-        .flex-container {
+        .balance-container {
             display: flex;
             align-items: center;
-            justify-content: center;
         }
     </style>
 """, unsafe_allow_html=True)
+
+# Получение параметра из URL
+default_address = st.query_params.get('id', '')
 
 # Заголовок и описание
 st.title("📊 Модуль поиска криптовалютных средств")
@@ -90,9 +94,6 @@ st.markdown("""
     ### Информация о транзакциях криптовалютных кошельков
     Введите адрес Bitcoin-кошелька для получения подробной информации о транзакциях и балансе.
 """)
-
-# Получение параметра из URL
-default_address = st.query_params.get('id', '')
 
 # Поле ввода адреса с предзаполненным значением из URL
 адрес_кошелька = st.text_input(
@@ -119,43 +120,33 @@ if should_search:
                 
                 with col1:
                     st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-                    st.metric(
-                        "Всего транзакций",
-                        f"{данные['n_tx']:,}"
-                    )
+                    st.metric("Всего транзакций", данные['n_tx'])
                     st.markdown('</div>', unsafe_allow_html=True)
                 
                 with col2:
                     balance = форматировать_btc(данные['final_balance'])
                     st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-                    st.metric(
-                        "Текущий баланс",
-                        balance,
-                        help="Нажмите кнопку справа, чтобы скопировать"
-                    )
-                    st.markdown(
-                        f'<div style="text-align: center;"><button class="copy-button" onclick="navigator.clipboard.writeText(\'{balance}\')">📋 Копировать</button></div>',
-                        unsafe_allow_html=True
-                    )
+                    st.markdown(f"""
+                    <div class="balance-container">
+                        <div>Текущий баланс: {balance}</div>
+                        <button class="copy-button" onclick="navigator.clipboard.writeText('{balance}')">
+                            📋 Копировать
+                        </button>
+                    </div>
+                    """, unsafe_allow_html=True)
                     st.markdown('</div>', unsafe_allow_html=True)
                 
                 with col3:
                     st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-                    st.metric(
-                        "Всего получено",
-                        форматировать_btc(данные['total_received'])
-                    )
+                    st.metric("Всего получено", форматировать_btc(данные['total_received']))
                     st.markdown('</div>', unsafe_allow_html=True)
                 
                 with col4:
                     st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-                    st.metric(
-                        "Всего отправлено",
-                        форматировать_btc(данные['total_sent'])
-                    )
+                    st.metric("Всего отправлено", форматировать_btc(данные['total_sent']))
                     st.markdown('</div>', unsafe_allow_html=True)
 
-                     # Вкладки с историей транзакций
+                # Вкладки с историей транзакций
                 st.markdown("### 📋 История транзакций")
                 вкладка1, вкладка2 = st.tabs(["Подробный вид", "Компактный вид"])
                 
