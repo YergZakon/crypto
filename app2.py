@@ -28,19 +28,6 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Добавляем JavaScript для функции копирования
-st.markdown("""
-<script>
-function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(function() {
-        console.log('Copying to clipboard was successful!');
-    }, function(err) {
-        console.error('Could not copy text: ', err);
-    });
-}
-</script>
-""", unsafe_allow_html=True)
-
 # Стилизация
 st.markdown("""
     <style>
@@ -66,27 +53,8 @@ st.markdown("""
             border-radius: 10px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .copy-button {
-            background-color: #f8f9fa;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 4px 8px;
-            font-size: 12px;
-            cursor: pointer;
-            margin-left: 8px;
-        }
-        .copy-button:hover {
-            background-color: #e9ecef;
-        }
-        .balance-container {
-            display: flex;
-            align-items: center;
-        }
     </style>
 """, unsafe_allow_html=True)
-
-# Получение параметра из URL
-default_address = st.query_params.get('id', '')
 
 # Заголовок и описание
 st.title("📊 Модуль поиска криптовалютных средств")
@@ -95,18 +63,15 @@ st.markdown("""
     Введите адрес Bitcoin-кошелька для получения подробной информации о транзакциях и балансе.
 """)
 
-# Поле ввода адреса с предзаполненным значением из URL
+# Поле ввода адреса
 адрес_кошелька = st.text_input(
     "Введите адрес Bitcoin-кошелька",
-    value=default_address,
     placeholder="Например: 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
     help="Введите полный адрес Bitcoin-кошелька для поиска"
 )
 
-# Автоматический поиск при наличии адреса в URL
-should_search = default_address != '' or st.button("🔍 Найти транзакции")
-
-if should_search:
+# Кнопка поиска
+if st.button("🔍 Найти транзакции"):
     if not адрес_кошелька:
         st.warning("⚠️ Пожалуйста, введите адрес кошелька")
     else:
@@ -124,16 +89,8 @@ if should_search:
                     st.markdown('</div>', unsafe_allow_html=True)
                 
                 with col2:
-                    balance = форматировать_btc(данные['final_balance'])
                     st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-                    st.markdown(f"""
-                    <div class="balance-container">
-                        <div>Текущий баланс: {balance}</div>
-                        <button class="copy-button" onclick="navigator.clipboard.writeText('{balance}')">
-                            📋 Копировать
-                        </button>
-                    </div>
-                    """, unsafe_allow_html=True)
+                    st.metric("Текущий баланс", форматировать_btc(данные['final_balance']))
                     st.markdown('</div>', unsafe_allow_html=True)
                 
                 with col3:
